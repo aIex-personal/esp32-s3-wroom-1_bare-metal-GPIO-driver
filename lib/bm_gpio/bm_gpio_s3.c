@@ -1,6 +1,7 @@
 #include "bm_gpio_s3.h"
 #include <stdint.h>
 
+
 /* low level register definitions (esp32-s3 gpio peripheral)*/
 
 /* use uintptr_t for adresses (portable integer type that can hold a pointer)*/
@@ -15,6 +16,9 @@
 #define GPIO_ENABLE_W1TS_OFFSET     (0x0024u)
 #define GPIO_ENABLE_W1TC_OFFSET     (0x0028u)
 
+#define GPIO_IN_REG_OFFSET          (0x003Cu)  // GPIO_IN_REG (read input pins 0..31)
+
+
 /* macro to get a volatile 32-bit register pointer */
 /* converts a raw address into a pointer to a 32-bit hardware register */
 #define REG32(addr) ((volatile uint32_t *)(addr))
@@ -28,6 +32,8 @@ static inline bool bm_gpio_is_valid_low(uint8_t gpio_num)
 {
     return (gpio_num < 32u);
 }
+
+
 
 /* public api */
 void bm_gpio_set_mode(uint8_t gpio_num, bm_gpio_mode_t mode)
@@ -85,3 +91,16 @@ void bm_gpio_toggle(uint8_t gpio_num)
         bm_gpio_write(gpio_num, BM_GPIO_LEVEL_HIGH);
     }
 }
+
+bm_gpio_level_t bm_gpio_read(uint8_t gpio_num)
+{
+    if (!bm_gpio_is_valid_low(gpio_num)) {
+        return BM_GPIO_LEVEL_LOW;
+    }
+
+    volatile uint32_t *in_reg = REG32(GPIO_BASE_ADDR + GPIO_IN_REG_OFFSET);
+    uint32_t v = *in_reg;
+
+    return (v & bm_gpio_mask(gpio_num)) ? BM_GPIO_LEVEL_HIGH : BM_GPIO_LEVEL_LOW;
+}
+

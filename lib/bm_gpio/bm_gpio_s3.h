@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,6 +21,12 @@ typedef enum
     BM_GPIO_LEVEL_HIGH = 1,
 }bm_gpio_level_t;
 
+typedef enum {
+    BM_GPIO_PULL_NONE = 0,
+    BM_GPIO_PULL_UP = 1,
+    BM_GPIO_PULL_DOWN = 2,
+}bm_gpio_pull_t;
+
 /**
  * @brief Configure a gpio pin as input/output (0 - 31) only in this minimal driver
  */
@@ -34,6 +42,16 @@ void bm_gpio_write(uint8_t gpio_num, bm_gpio_level_t level);
  * Note: Implemented via reading out register
  */
 void bm_gpio_toggle(uint8_t gpio_num);
+
+/**
+ * @brief pull up
+ */
+void bm_gpio_set_pull(uint8_t gpio_num, bm_gpio_pull_t pull);
+
+/**
+ * @brief input read
+ */
+bm_gpio_level_t bm_gpio_read(uint8_t gpio_num);
 
 #ifdef __cplusplus
 }

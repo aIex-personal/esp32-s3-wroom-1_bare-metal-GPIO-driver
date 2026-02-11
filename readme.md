@@ -1,3 +1,5 @@
+
+goal: bare-metal gpio driver
 observations bm_gpio_s3
 
 1.  Inside the esp32-s3, peripherals (spio, uart, spi, etc) live at fixed addresses in the CPU's address space, therefore when we write to address 0x60004008, we are writing the gpio hardware's control register
@@ -39,3 +41,15 @@ A truly full professional GPIO driver on ESP32-S3 would also handle:
     GPIO32..48 (separate registers)
     multi-core / critical sections if doing more complex sequences
     But for “blink a pin with bare-metal register writes”, this is correct and clean.
+
+
+goal: bare-metal button (input enable; pull-up, pull-down; debouncing), the bm_fpio_s3 supports output enable/disable and output set/clear/toggle, therefore we must add
+    bm_gpio_read() to read imput state
+    bm_gpio_input_enable() as it matters on some mcu
+    pull-up/ pull-down coonfiguration so that the input is not floating
+On ESP32-S3, inputs go through the IO MUX / pad config; ESP-IDF normally handles it, but we can still do it bare metal by writing pad registers.
+debouncing: A mechanical button “bounces” for ~5–30 ms: it rapidly toggles 0/1 several times when pressed or released. Without debouncing, your firmware may detect multiple presses. Two common debounce strategies:
+    Delay-based: on change, wait 20 ms, confirm state
+    Integrator / stable-count (better): sample every X ms and require N stable samples
+stable-count -> No blocking delays, very robust.
+ESP32-S3 pullups are controlled in the IO MUX / pad registers, not in the simple GPIO block.
